@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ news.title }}</title>
+    <style>
+        .news-header-container {
+            display: flex;
+        }
+        .news-edit-btn {
+            height: 20px;
+            width: 20px;
+            margin-left: 20px;
+            border: none;
+            background: url('/static/img/edit.jpg') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .news-edit-btn:hover {
+            opacity: 0.6;
+        }
+        .edit-btn-form {
+            display: flex;
+            align-items: center;
+        }
+        .add-form,
+        .comments-list {
+            margin-left: 50px;
+        }
+    </style>
+</head>
+<body>
+    {% load filters %}
+    {% load filters %}
+    {% if request.user.is_authenticated %}
+        <div>
+            <span>Добро пожаловать, <strong>{{ request.user.username }}</strong> |</span>
+            <a href="{% url 'profile' %}">Просмотр профиля |</a>
+            <a href="{% url 'logout' %}">Выйти</a>
+        </div>
+    {% else %}
+        <div>
+            <span>Вы не вошли |</span>
+            <a href="{% url 'login' %}">Войти |</a>
+            <a href="{% url 'register' %}">Регистрация</a>
+        </div>
+    {% endif %}
+    <a href="{% url 'news_list' %}">Вернуться к списку</a>
+    <div class="news-header-container">
+        <h3>{{ news.title }}</h3>
+        {% if request.user.is_superuser %}
+            <form action="{% url 'news_edit' news.id %}" method="get" class="edit-btn-form">
+                {% csrf_token %}
+                <button type="submit" class="news-edit-btn"></button>
+            </form>
+        {% endif %}
+    </div>
+    <p>{{ news.description }}</p>
+    <ul>
+        <li>Создана: {{ news.published_at }}</li>
+        <li>Дата последнего редактирования: {{ news.updated_at }}</li>
+        <li>Статус: {{ news.is_active|yesno:"Активна, Не активна" }}</li>
+        <li>Опубликовал: {{ news.user.username }}</li>
+    </ul>
+    <h4>Комментарии</h4>
+    {% if news.comments.all %}
+        <ul class="comments-list">
+            {% for comment in news.comments.all %}
+                <li>
+                {% if comment_id and comment_id == comment.id %}
+                    <h4>Редактирование комментария</h4>
+                    <form action="{% url 'comments_edit' news.id comment.id %}" method="post" class="add-form">
+                        {% csrf_token %}
+                        {{ comments_form.as_ul }}
+                        <button type="submit">Сохранить</button>
+                    </form>
+                {% else %}
+                    <div class="news-header-container">
+                        {% if comment.user %}
+                            <h4>{{ comment.user.username }}</h4>
+                        {% else %}
+                            <h4>{{ comment.username }} (аноним)</h4>
+                        {% endif %}
+                        {% if request.user.is_authenticated and comment.user == request.user %}
+                            <form action="{% url 'comments_edit' news.id comment.id %}" method="get" class="edit-btn-form">
+                                {% csrf_token %}
+                                <button type="submit" class="news-edit-btn"></button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <p>{{ comment.description }}</p>
+                {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Комментариев пока нет</p>
+    {% endif %}
+    {% if comments_form and not comment_id %}
+        <h4>Добавление комментария</h4>
+        <form action="{% url 'comments_create' news.id %}" method="post" class="add-form">
+            {% csrf_token %}
+            {{ comments_form.as_ul }}
+            <button type="submit">Добавить</button>
+        </form>
+    {% else %}
+        <form action="{% url 'comments_create' news.id %}" method="GET">
+            {% csrf_token %}
+            <button type="submit">Добавить комментарий</button>
+        </form>
+    {% endif %}
+</body>
+</html>

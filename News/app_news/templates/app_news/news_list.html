@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        .news-header-container {
+            display: flex;
+        }
+        .news-edit-btn {
+            height: 20px;
+            width: 20px;
+            margin-left: 20px;
+            border: none;
+            background: url('/static/img/edit.jpg') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .news-edit-btn:hover {
+            opacity: 0.6;
+        }
+        .edit-btn-form {
+            display: flex;
+            align-items: center;
+        }
+        .tag-list {
+            display: inline-flex;
+            list-style: none;
+        }
+        .tag-item {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% load filters %}
+    {% if request.user.is_authenticated %}
+        <div>
+            <span>Добро пожаловать, <strong>{{ request.user.username }}</strong> |</span>
+            <a href="{% url 'profile' %}">Просмотр профиля |</a>
+            <a href="{% url 'logout' %}">Выйти</a>
+        </div>
+    {% else %}
+        <div>
+            <span>Вы не вошли |</span>
+            <a href="{% url 'login' %}">Войти |</a>
+            <a href="{% url 'register' %}">Регистрация</a>
+        </div>
+    {% endif %}
+    <h2>{{ title }}</h2>
+    {% if news_list %}
+        <ul>
+            {% for news in news_list %}
+                <li>
+                    <div class="news-header-container">
+                        <h3><a href="{% url 'news_detail' news.id %}">{{ news.title }}</a></h3>
+                        {% if request.user.is_superuser %}
+                            <form action="{% url 'news_edit' news.id %}" method="get" class="edit-btn-form">
+                                {% csrf_token %}
+                                <button type="submit" class="news-edit-btn"></button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <p>{{ news.description }}</p>
+                    <ul>
+                        <li>Теги: 
+                            <ul class="tag-list">
+                                {% for tag in news.tags.all %}
+                                    <li class="tag-item"><a href="{% url 'news_list'%}?{{request.GET|getdict_update_tag:tag.tag}}"> #{{ tag.tag }} </a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        <li>Создана: <a href="{% url 'news_list' %}?{{request.GET|getdict_update_date:news}}">{{ news.published_at }}</a></li>
+                        <li>Дата последнего редактирования: {{ news.updated_at }}</li>
+                        <li>Статус: {{ news.is_active|yesno:"Активна, Не активна" }}</li>
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Новостей пока нет</p>
+    {% endif %}
+    {% if request.user.is_superuser or request.user.profile.verification %}
+        <form action="{% url 'news_create' %}" method="GET">
+            {% csrf_token %}
+            <button type="submit">Создать новость</button>
+        </form>
+    {% endif %}
+</body>
+</html>

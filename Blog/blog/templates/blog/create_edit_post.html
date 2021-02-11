@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        h4 {
+            margin-top: 0;
+        }
+        .file-container {
+            display: flex;
+        }
+        .file-delete-btn {
+            display: block;
+            height: 20px;
+            width: 20px;
+            margin-left: 20px;
+            border: none;
+            background: url('/static/img/delete.png') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .file-delete-btn:hover {
+            opacity: 0.6;
+        }
+        .delete-btn-form {
+            display: flex;
+            align-items: center;
+        }
+        .file-restore-btn {
+            display: block;
+            height: 20px;
+            width: 20px;
+            margin-left: 20px;
+            border: none;
+            background: url('/static/img/restore.jpg') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .file-restore-btn:hover {
+            opacity: 0.6;
+        }
+        .file-deleted {
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    {% load filters %}
+    <h2>{{ title }}</h2>
+    {% if post %}
+        <form action="{% url 'post_edit' post.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ post_form.as_ul }}
+            {% if post.files.all %}
+                <h3>Прикрепленные изображения</h3>
+                <ul>
+                    {% for f in post.files.all %}
+                        <li class="file-container">
+                            {% if f.on_delete %}
+                                <h4 class="file-deleted">{{ f.file.path|get_basename }}</h4>
+                                <a href="{% url 'post_edit' post.id %}?restore={{ f.id }}" class="file-restore-btn"></a>
+                            {% else %}
+                                <h4><a href="{{ f.file.name|get_media_url }}" download>{{ f.file.path|get_basename }}</a></h4>
+                                <a href="{% url 'post_edit' post.id %}?delete={{ f.id }}" class="file-delete-btn"></a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <h3>Прикрепить новые изображения</h3>
+            {{ file_form.as_ul }}
+            <button type="submit">Сохранить</button>
+        </form>
+    {% elif file_form %}
+        <form action="{% url 'post_create' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ post_form.as_ul }}
+            {{ file_form.as_ul }}
+            <button type="submit">Создать запись</button>
+        </form>
+    {% else %}
+        <form action="{% url 'post_add_list' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ post_form.as_ul }}
+            <button type="submit">Создать записи</button>
+        </form>
+    {% endif %}
+</body>
+</html>

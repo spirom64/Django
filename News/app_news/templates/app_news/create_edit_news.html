@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h2>{{ title }}</h2>
+    {% if news_id %}
+        <form action="{% url 'news_edit' news_id %}" method="post">
+            {% csrf_token %}
+            {{ news_form.as_ul }}
+            <button type="submit">Сохранить</button>
+        </form>
+    {% else %}
+        <form action="{% url 'news_create' %}" method="post">
+            {% csrf_token %}
+            {{ news_form.as_ul }}
+            {{ tags_form.as_ul }}
+            <button type="submit">Создать новость</button>
+        </form>
+    {% endif %}
+</body>
+</html>

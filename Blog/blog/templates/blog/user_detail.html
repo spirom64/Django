@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр профиля</title>
+    <style>
+        {% load static %}
+        .profile-header,
+        .profile-container {
+            display: flex;
+        }
+        .profile-photo {
+            margin-right: 20px;
+            max-width: 300px;
+            max-height: 300px;
+        }
+        .edit-btn {
+            height: 20px;
+            width: 20px;
+            margin-left: 20px;
+            border: none;
+            background: url('/static/img/edit.jpg') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .edit-btn:hover {
+            opacity: 0.6;
+        }
+        .edit-btn-form {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    {% load filters %}
+    {% if request.user.is_authenticated %}
+        <div class="profile-container">
+            {% if request.user.profile.photo %}
+                <img src="{{ request.user.profile.photo.name|get_media_url }}" alt="{{ request.user.username }}" class="profile-photo">
+            {% endif %}
+            <div class="profile-content">
+                <div class="profile-header">
+                    <h2>{{ request.user.username }}</h2>
+                    <form action="{% url 'profile_edit' %}" method="get" class="edit-btn-form">
+                        {% csrf_token %}
+                        <button type="submit" class="edit-btn"></button>
+                    </form>
+                </div>
+                <ul>
+                    <li>
+                        <b>Имя: </b><p>{{ request.user.first_name }}</p>
+                    </li>
+                    <li>
+                        <b>Фамилия: </b><p>{{ request.user.last_name }}</p>
+                    </li>
+                    <li>
+                        <b>О себе: </b><p>{{ request.user.profile.description }}</p>
+                    </li>
+                    <li>
+                        <b>Город: </b><p>{{ request.user.profile.city }}</p>
+                    </li>
+                    <li>
+                        <b>Телефон: </b><p>{{ request.user.profile.phone }}</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <div>
+            <span>Вы не вошли |</span>
+            <a href="{% url 'login' %}">Войти |</a>
+            <a href="{% url 'register' %}">Регистрация</a>
+        </div>
+    {% endif %}
+</body>
+</html>

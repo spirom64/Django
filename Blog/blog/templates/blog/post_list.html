@@ -1,0 +1,46 @@
+{% extends "blog/blog_base.html" %}
+
+{% load static %}
+{% load filters %}
+{% load i18n %}
+
+{% block content %}
+
+    <h2>{{ title }}</h2>
+    {% if post_list %}
+        <ul>
+            {% for post in post_list %}
+                <li>
+                    <div class="post-header-container">
+                        <h3><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h3>
+                        {% if request.user == post.user %}
+                            <form action="{% url 'post_edit' post.id %}" method="get" class="edit-btn-form">
+                                {% csrf_token %}
+                                <button type="submit" class="post-edit-btn"></button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <p>{{ post.description|truncatechars:100 }}</p>
+                    <ul>
+                        <li>Создана: <a href="{% url 'blog_list' %}?{{request.GET|getdict_update_date:post}}">{{ post.published_at }}</a></li>
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Записей пока нет</p>
+    {% endif %}
+    {% if request.user.is_authenticated %}
+        <h3>{% trans "Вы можете" %}</h3>
+        <form action="{% url 'post_create' %}" method="GET">
+            {% csrf_token %}
+            <button type="submit">Добавить запись</button>
+        </form>
+        <h3>или</h3>
+        <form action="{% url 'post_add_list' %}" method="GET">
+            {% csrf_token %}
+            <button type="submit">Загрузить файл csv</button>
+        </form>
+    {% endif %}
+
+{% endblock %}

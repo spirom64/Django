@@ -1,0 +1,58 @@
+{% extends "blog/blog_base.html" %}
+
+{% load static %}
+{% load filters %}
+
+{% block title %}
+    {{ post.title }}
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+    <style>
+        .img-list {
+            display: flex;
+            list-style: none;
+        }
+        .img-item {
+            flex-basis: 30%;
+            flex-shrink: 1;
+            flex-grow: 1;
+        }
+        .img {
+            height: auto;
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <a href="{% url 'blog_list' %}">Вернуться к списку</a>
+    <div class="post-header-container">
+        <h3>{{ post.title }}</h3>
+        {% if request.user == post.user %}
+            <form action="{% url 'post_edit' post.id %}" method="get" class="edit-btn-form">
+                {% csrf_token %}
+                <button type="submit" class="post-edit-btn"></button>
+            </form>
+        {% endif %}
+    </div>
+    <p>{{ post.description }}</p>
+    <ul>
+        <li>Создана: {{ post.published_at }}</li>
+        <li>Опубликовал: {{ post.user.username }}</li>
+    </ul>
+    {% if post.files.all %}
+        <h4>Прикрепленные изображения</h4>
+        <ul class="img-list">
+            {% for f in post.files.all %}
+            <li class="img-item">
+                <img src="{{ f.file.name|get_media_url }}" alt="{{ f.file.path|get_basename }}" class="img">
+                <a href="{{ f.file.name|get_media_url }}" download>{{ f.file.path|get_basename }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+{% endblock %}
